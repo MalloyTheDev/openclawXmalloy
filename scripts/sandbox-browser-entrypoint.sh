@@ -311,9 +311,12 @@ fi
 
 if [[ "${ENABLE_NOVNC}" == "1" && "${HEADLESS}" != "1" ]]; then
   if [[ -z "${NOVNC_PASSWORD}" ]]; then
-    NOVNC_PASSWORD="$(< /proc/sys/kernel/random/uuid)"
-    NOVNC_PASSWORD="${NOVNC_PASSWORD//-/}"
-    NOVNC_PASSWORD="${NOVNC_PASSWORD:0:8}"
+    # VNC auth only honors the first 8 characters, so spend those 8 on the full
+    # alphanumeric keyspace (~47 bits) instead of 8 hex digits from a UUID
+    # (~32 bits): websockify bridges this framebuffer on 0.0.0.0, so a weak
+    # auto-generated password is brute-forceable if the port is ever published.
+    # Bounded /dev/urandom read keeps the pipeline SIGPIPE-safe under pipefail.
+    NOVNC_PASSWORD="$(head -c 16 /dev/urandom | base64 | tr -dc 'A-Za-z0-9' | head -c 8)"
   fi
 
   mkdir -p "${HOME}/.vnc"

@@ -193,6 +193,17 @@ mantis/
 !.agent/workflows/
 /local/
 /client_secret_*.json
+
+# Signing keys / service accounts (NEVER COMMIT). The fastlane flows reference
+# these local files (AuthKey_*.p8/.json, google-play-service-account.json); keep
+# them out of git so a real signing credential can't be added by accident.
+*.pem
+*.key
+*.p8
+*.p12
+*.pfx
+*-service-account.json
+AuthKey_*.json
 package-lock.json
 !src/commands/copilot-sdk-install-manifest/package-lock.json
 .claude/

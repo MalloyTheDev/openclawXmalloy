@@ -14,6 +14,12 @@ OPENCLAW_PREFER_PNPM = "1"
 OPENCLAW_STATE_DIR = "/data"
 NODE_OPTIONS = "--max-old-space-size=1536"
 
+# This process binds the gateway beyond loopback (`--bind lan`) behind Fly's
+# public HTTP service. The gateway refuses to start on a non-loopback bind
+# without auth, so you MUST provide a token before deploying:
+#   fly secrets set OPENCLAW_GATEWAY_TOKEN="$(openssl rand -hex 32)"
+# (Fly injects secrets as env vars; do not put the token in [env] above, which
+# is committed to git. See render.yaml for the equivalent generated value.)
 [processes]
 app = "node dist/index.js gateway --allow-unconfigured --port 3000 --bind lan"
 

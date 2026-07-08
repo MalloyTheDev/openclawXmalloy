@@ -15,6 +15,23 @@ a non-root digest-pinned `Dockerfile`, and a fail-closed gateway bind
 The items below are the genuine, verified findings — mostly Medium/Low hardening gaps.
 Each is intended to become a GitHub issue (labels: `security` / `hardening`, plus `audit`).
 
+## Remediation status
+
+| # | Finding | Status |
+|---|---------|--------|
+| 1 | Weak 32-bit noVNC/VNC password | **Fixed** — 8 chars from full alphanumeric keyspace, SIGPIPE-safe |
+| 4 | Fly template omits gateway token | **Fixed** — deploy-time `fly secrets set` guidance added |
+| 6 | `.gitignore` missing signing-key patterns | **Fixed** — patterns added (0 tracked-file collisions) |
+| 7a | `advisory` dispatch input interpolated into shell | **Fixed** — routed through `env:` |
+| 2 | `chmod 0777` on CI secret dirs | Deferred — `0700` breaks cross-UID container reads of the mounted config; token is a throwaway CI value. Needs a `chown`-to-container-UID fix validated on CI. |
+| 3 | Predictable `/tmp` HOME (TOCTOU) | Deferred — a `rm -rf $HOME` guard risks wiping a mounted browser-profile volume; single-tenant container. Needs an ownership-assert approach. |
+| 5 | Missing containment in `resolveTranscriptMediaPath` | Deferred — prod hot-path change; requires full Vitest suite on Testbox (not runnable in this session) before landing. |
+| 7b | `crabbox_runner_label` in `runs-on` | Deferred — `type: choice` enum needs the valid self-hosted label list. |
+
+Fixes above are self-contained shell/config/CI changes, each syntax-validated
+(`bash -n`, YAML/TOML parse, `git check-ignore`). Deferred items remain documented
+below and are safe to tackle next with the appropriate validation.
+
 ---
 
 ## 1. Browser sandbox auto-generates a weak 32-bit noVNC/VNC password — Medium · `security`

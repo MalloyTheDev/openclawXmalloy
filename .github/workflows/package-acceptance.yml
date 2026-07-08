@@ -661,10 +661,13 @@ jobs:
           PACKAGE_INTEGRITY_RESULT: ${{ needs.package_integrity.result }}
           PACKAGE_TELEGRAM_RESULT: ${{ needs.package_telegram.result }}
           RESOLVE_RESULT: ${{ needs.resolve_package.result }}
+          # Route the dispatch input through env (consumed as a quoted var below)
+          # instead of interpolating it straight into the shell script.
+          ADVISORY: ${{ inputs.advisory }}
         shell: bash
         run: |
           set -euo pipefail
-          advisory="${{ inputs.advisory }}"
+          advisory="${ADVISORY}"
           failed=0
           for item in \
             "resolve_package=${RESOLVE_RESULT}" \
