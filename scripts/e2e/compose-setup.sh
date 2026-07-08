@@ -22,12 +22,22 @@ cleanup() {
 trap cleanup EXIT
 
 mkdir -p "$PROJECT_DIR/config/workspace" "$PROJECT_DIR/auth-profile"
+# 0777 is load-bearing here: the documented compose topology runs the gateway as
+# the image's non-root `node` user (uid 1000), which reads AND writes all three
+# of these bind mounts. That uid will not match the host uid that created this
+# mktemp dir, so tightening to 0700/0770 makes the mounts inaccessible to the
+# container. The token is therefore NOT persisted into these world-readable
+# files (see below) so no secret is exposed on a shared host.
 chmod -R 0777 "$PROJECT_DIR/config" "$PROJECT_DIR/auth-profile"
+# Do not write the auth token into this world-readable config file. The gateway
+# resolves it from the OPENCLAW_GATEWAY_TOKEN env var that compose injects into
+# the container (docker-compose.yml) via the token-source env fallback
+# (src/gateway/auth-token-resolution.ts).
 cat >"$PROJECT_DIR/config/openclaw.json" <<EOF
 {
   "gateway": {
     "mode": "local",
-    "auth": { "mode": "token", "token": "$TOKEN" },
+    "auth": { "mode": "token" },
     "controlUi": { "enabled": false }
   }
 }
