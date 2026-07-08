@@ -311,8 +311,11 @@ fi
 
 if [[ "${ENABLE_NOVNC}" == "1" && "${HEADLESS}" != "1" ]]; then
   if [[ -z "${NOVNC_PASSWORD}" ]]; then
-    NOVNC_PASSWORD="$(< /proc/sys/kernel/random/uuid)"
-    NOVNC_PASSWORD="${NOVNC_PASSWORD//-/}"
+    # Full-alphanumeric password (~47.6 bits within VNC's 8-char auth limit),
+    # matching the TypeScript launcher (src/agents/sandbox/novnc-auth.ts).
+    # Bounded /dev/urandom read (head closes after 256 bytes, tr drains to EOF)
+    # avoids SIGPIPE tripping `set -o pipefail`.
+    NOVNC_PASSWORD="$(head -c 256 /dev/urandom | LC_ALL=C tr -dc 'A-Za-z0-9')"
     NOVNC_PASSWORD="${NOVNC_PASSWORD:0:8}"
   fi
 
