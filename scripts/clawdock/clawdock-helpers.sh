@@ -362,7 +362,7 @@ clawdock-fix-token() {
     return 1
   fi
 
-  echo "📝 Setting token: ${token:0:20}..."
+  echo "📝 Setting token: $(_clawdock_mask_value "$token")"
 
   _clawdock_compose exec -e "TOKEN=$token" openclaw-gateway \
     bash -c './openclaw.mjs config set gateway.remote.token "$TOKEN" && ./openclaw.mjs config set gateway.auth.token "$TOKEN"' 2>&1 | _clawdock_filter_warnings
@@ -376,8 +376,8 @@ clawdock-fix-token() {
     echo "✅ Token saved correctly!"
   else
     echo "⚠️  Token mismatch detected"
-    echo "   Expected: ${token:0:20}..."
-    echo "   Got: ${saved_token:0:20}..."
+    echo "   Expected: $(_clawdock_mask_value "$token")"
+    echo "   Got: $(_clawdock_mask_value "$saved_token")"
   fi
 
   echo "🔄 Restarting gateway..."
