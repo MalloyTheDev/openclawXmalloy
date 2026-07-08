@@ -193,6 +193,18 @@ mantis/
 !.agent/workflows/
 /local/
 /client_secret_*.json
+
+# Signing keys & credentials (NEVER COMMIT)
+*.p8
+*.p12
+*.pfx
+*.keystore
+*.jks
+*.mobileprovision
+*-service-account.json
+AuthKey_*.json
+*.pem
+*.key
 package-lock.json
 !src/commands/copilot-sdk-install-manifest/package-lock.json
 .claude/
