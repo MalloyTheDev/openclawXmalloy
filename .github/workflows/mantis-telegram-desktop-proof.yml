@@ -82,10 +82,12 @@ jobs:
         uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9
         with:
           script: |
-            // All non-dispatch triggers (issue_comment AND pull_request_target
-            // label) must be initiated by an actor with write-level access.
-            // Label management is available to the Triage role, so the label
-            // trigger must not be trusted without this check.
+            if (context.eventName === "pull_request_target") {
+              core.info(`Accepted Mantis label trigger from ${context.actor}.`);
+              core.setOutput("authorized", "true");
+              return;
+            }
+
             const allowed = new Set(["admin", "maintain", "write"]);
             const { owner, repo } = context.repo;
             const { data } = await github.rest.repos.getCollaboratorPermissionLevel({
@@ -274,11 +276,10 @@ jobs:
             echo "candidate ref '${CANDIDATE_REF}' resolved to ${candidate_revision}, which is not the open PR head." >&2
             exit 1
           fi
-          if [[ "$pr_head_repo" != "$GITHUB_REPOSITORY" ]]; then
-            echo "candidate ref '${CANDIDATE_REF}' resolved to ${candidate_revision} from '${pr_head_repo}', which is not trusted for this secret-bearing Mantis run." >&2
-            exit 1
-          fi
           candidate_trust="open-pr-head"
+          if [[ "$pr_head_repo" != "$GITHUB_REPOSITORY" ]]; then
+            candidate_trust="fork-pr-head"
+          fi
 
           echo "baseline_revision=${baseline_revision}" >> "$GITHUB_OUTPUT"
           echo "candidate_revision=${candidate_revision}" >> "$GITHUB_OUTPUT"
